@@ -35,7 +35,7 @@ def ProcessInputfile(filename):
     return result
 
 
-def Process(ranges_to_check):
+def ProcessA(ranges_to_check):
 
     results = []
     for item in ranges_to_check:
@@ -58,6 +58,52 @@ def Process(ranges_to_check):
                
     return results  
 
+def find_nonoverlapping(haystack: str, needle: str) -> list[int]:
+    """Return start indices of non-overlapping occurrences of needle in haystack."""
+    if not needle:
+        return []
+    res = []
+    i = 0
+    step = len(needle)
+    while True:
+        i = haystack.find(needle, i)
+        if i == -1:
+            break
+        print(f"   Found non-overlapping '{needle}' in '{haystack}' at index {i}")
+        res.append(i)
+        i += step  # skip past this match
+    return res
+
+def ProcessB(ranges_to_check):
+
+    results = []
+    for item in ranges_to_check:
+        print(f"Processing range: {item}")
+        # iterate start values between a and b (inclusive)
+        for current in range(item[0], item[1] + 1):
+            # turn end into string.
+            # go halfway between length of it.. split it and if equal add to results
+            current_str = str(current)
+            length = len(current_str)
+            
+            half = length // 2
+            for split in range(1, half + 1):
+                
+                first_half = current_str[:int(split)]
+                second_half = current_str[int(split):]
+                print(f" Checking split size {split} for number {current_str} => {first_half}, {second_half} ")
+                copies = find_nonoverlapping(second_half, first_half)
+                needed_copies = (len(second_half) / split) #half
+
+                if len(copies) == needed_copies :
+                    print(f" {current}: good copyies found, adding {copies} {first_half}, {second_half}")
+                    results.append(current)
+                    break
+                
+
+               
+    return results  
+
 def main():
     parser = argparse.ArgumentParser(description="Parse file lines with a character and a number.")
     parser.add_argument("filename", help="Input file to parse")
@@ -68,7 +114,7 @@ def main():
     print(inv_item_ranges)
 
     # 2. Process data.
-    invalids = Process(inv_item_ranges)
+    invalids = ProcessB(inv_item_ranges)
     print(f"List of invalid items:\n {invalids} ")
 
     total = 0
