@@ -21,7 +21,7 @@ def ProcessInputfile(filename):
         return result  
 
 
-def Process(battery_array):
+def ProcessA(battery_array):
 
     results = []
 
@@ -47,6 +47,45 @@ def Process(battery_array):
 
     return results  
 
+def ProcessB(battery_array):
+    # find top 12 values in each battery to get the charge.
+    # but these are 15 digit strings, so need to find the largest 12 digit number in order possible.
+    results = []
+    TARGET_LENGTH = 12
+    for battery in battery_array:
+        # process each battery string
+        battery_len = len(battery)
+        start_index = 0
+        value_str = ''
+        print(f"Processing battery {battery} ")
+
+        while start_index < battery_len and len(value_str) < TARGET_LENGTH:
+            remaining_needed = TARGET_LENGTH - len(value_str)
+            # allowed last start for this pick so we still have enough digits left
+            end_exclusive = battery_len - (remaining_needed - 1)
+            window = battery[start_index:end_exclusive]
+            if not window:
+                break
+
+            # pick the maximum digit in the allowed window
+            chosen = max(window)
+            rel_idx = window.index(chosen)
+            abs_idx = start_index + rel_idx
+            print(f"\tlargest find {rel_idx} (abs {abs_idx}) for char {chosen} from {window} ")
+
+            value_str += chosen
+            print(f"\tvalue so far {value_str} ")
+
+            # advance to the element in the main battery after the chosen one
+            start_index = abs_idx + 1
+            print(f"\tremaining of battery to search @index[{start_index}] {battery[start_index:]}\n")
+
+        max_charge = int(value_str)
+        results.append(max_charge)
+        print(f"max charge is {max_charge} now {results} ")
+
+    return results 
+
 def main():
     parser = argparse.ArgumentParser(description="Parse file lines with a character and a number.")
     parser.add_argument("filename", help="Input file to parse")
@@ -57,7 +96,7 @@ def main():
     print(batteries)
 
     # 2. Process data.
-    max_charge_list = Process(batteries)
+    max_charge_list = ProcessB(batteries)
     print(f"List of invalid items:\n {max_charge_list} ")
 
     total = 0
