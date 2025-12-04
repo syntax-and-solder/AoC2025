@@ -56,6 +56,16 @@ def Process(wall_array):
     return results  
 
 
+def UpdateWall(map, results):
+    for (row_idx, col_idx) in results:
+        print(f"Updating wall at ({row_idx}, {col_idx}) from '@' to '.'")
+        # convert to 0-based indices
+        r = row_idx - 1
+        c = col_idx - 1
+        map[r][c] = '.'
+    return map
+
+
 def main():
     parser = argparse.ArgumentParser(description="Parse file lines with a character and a number.")
     parser.add_argument("filename", help="Input file to parse")
@@ -65,10 +75,25 @@ def main():
     map = ProcessInputfile(args.filename)
     print(map)
 
-    # 2. Process data.
-    results = Process(map)
-    print(f"Movable rolls:\n {len(results)} ")
+    total_rolls = 0;
 
+    while True:
+        # 2. Process data.
+        results = Process(map)
+
+        if not results:
+            print("No more movable rolls found. Exiting.")
+            break
+
+        total_rolls += len(results)
+        print(f"Movable rolls:\n {total_rolls} ")
+
+        map = UpdateWall(map, results)
+        print(f"Updated wall: {map}")
+        #break
+
+    total_rolls += len(results)
+    print(f"Final Movable rolls:\n {total_rolls} ")
 
 
 if __name__ == "__main__":
