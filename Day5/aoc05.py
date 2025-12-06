@@ -68,14 +68,18 @@ def Process(fresh_ids, inventory_to_check):
             print(f"Merged ranges: {fresh_ids}\n")
 
 
-    print(f"Merged fresh ID ranges: {fresh_ids}")
+    print(f"\n\n\n\n\n\FINAL Merged fresh ID ranges: {fresh_ids}")
+    total_possible_fresh = 0
+    for start, end in fresh_ids:
+        total_possible_fresh += (end - start + 1)
+
 
     for item in inventory_to_check:
         for start, end in fresh_ids:
             if start <= item <= end:
                 fresh_items.append(item)
                 continue
-    return fresh_items
+    return fresh_items, total_possible_fresh
 
 
 def main():
@@ -91,11 +95,11 @@ def main():
 
 
     # 2. Process data.
-    results = Process(fresh, inventory)
-    print(f"Confirmed Fresh : {results}")
+    results, total_possible_fresh_foods = Process(fresh, inventory)
+    print(f"\n\n\n\n\n\n\n\nConfirmed Fresh : {results}\n\n\n\n\n\n\n\n")
 
     total_fresh_foods += len(results)
-    print(f"Total valid:\n {total_fresh_foods} ")
+    print(f"Total valid:\n {total_fresh_foods} and possible {total_possible_fresh_foods}  ")
 
 
 if __name__ == "__main__":
