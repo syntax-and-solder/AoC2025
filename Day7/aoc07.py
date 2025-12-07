@@ -1,7 +1,8 @@
-import re
+
 import sys
 import argparse
-from math import floor
+from functools import lru_cache
+from typing import List, Tuple
 
 
 def ProcessInputfile(filename):
@@ -21,7 +22,7 @@ def find_all_char_indices(s: str, ch: str) -> list[int]:
     """Return all indices where character ch appears in s."""
     return [i for i, c in enumerate(s) if c == ch]
 
-def Process(wall_array):
+def ProcessBFS(wall_array):
 
     results = []
     found_start = False
@@ -66,6 +67,86 @@ def Process(wall_array):
         print_map(wall_array)
     return split_count  
 
+
+# This is completely copilot generated for the sake of learning.
+def ProcessDFS(wall_array: List[str]) -> int:
+    """
+    Count unique timelines using a memoized DFS, then produce a visual map.
+
+    Counting rules:
+      - Beam starts one row below 'S'.
+      - Out-of-bounds = one timeline end (count = 1).
+      - Traversable chars: '.', '^', 'S'
+      - '^' splits into (r+1, c-1) and (r+1, c+1).
+      - '.' or 'S' continue straight down (r+1, c).
+    """
+    mat = [list(r) for r in wall_array]
+    rows = len(mat)
+    if rows == 0:
+        return 0
+
+    # locate 'S'
+    start_r = start_c = None
+    for r, row in enumerate(mat):
+        c = ''.join(row).find('S')
+        if c != -1:
+            start_r, start_c = r, c
+            break
+    if start_r is None:
+        raise ValueError("Start 'S' not found")
+
+    def in_bounds(r: int, c: int) -> bool:
+        return 0 <= r < rows and 0 <= c < len(mat[r])
+
+    def is_traversable_char(ch: str) -> bool:
+        return ch in ('.', '^', 'S')
+
+    @lru_cache(maxsize=None)
+    def dfs_count(r: int, c: int) -> int:
+        # leaving the map is a single timeline end
+        if not in_bounds(r, c):
+            return 1
+        ch = mat[r][c]
+        # hitting a non-traversable char inside the map is a terminal end
+        if not is_traversable_char(ch):
+            return 1
+        if ch == '^':
+            return dfs_count(r + 1, c - 1) + dfs_count(r + 1, c + 1)
+        else:
+            return dfs_count(r + 1, c)
+
+    unique_timelines_count = dfs_count(start_r + 1, start_c)
+
+    # Build a visual map of all cells that are part of any reachable path.
+    visual = [list(r) for r in wall_array]
+    stack: List[Tuple[int, int]] = [(start_r + 1, start_c)]
+    seen = set()
+    while stack:
+        r, c = stack.pop()
+        if not in_bounds(r, c):
+            continue
+        if (r, c) in seen:
+            continue
+        ch = visual[r][c]
+        if not is_traversable_char(ch):
+            continue
+        seen.add((r, c))
+        if ch == '^':
+            # keep the '^' visually
+            stack.append((r + 1, c - 1))
+            stack.append((r + 1, c + 1))
+        else:
+            # mark beam path
+            visual[r][c] = '|'
+            stack.append((r + 1, c))
+
+    # print final visual map
+    for line in [''.join(row) for row in visual]:
+        print(line)
+
+    return unique_timelines_count
+
+
 def print_map(map):
     for line in map:
         print(line)
@@ -83,8 +164,8 @@ def main():
 
 
     # 2. Process data.
-    split_count = Process(map)
-    print(f"Total splits: {split_count}")
+    count = ProcessDFS(map)
+    print(f"Total unique timelines: {count}")
 
 
 if __name__ == "__main__":
